@@ -10,6 +10,7 @@
             --secondary-color: #2c3e50;
             --accent-color: #e74c3c;
             --success-color: #2ecc71;
+            --warning-color: #f39c12;
             
             /* Light mode variables */
             --bg-color: #f5f7fa;
@@ -91,6 +92,8 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s;
+            display: flex;
+            flex-direction: column;
         }
         
         .components-panel h2 {
@@ -104,6 +107,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
+            flex-shrink: 0;
         }
         
         .component-item {
@@ -120,6 +124,14 @@
         .component-item:hover {
             transform: translateY(-3px);
             background-color: var(--primary-color);
+        }
+        
+        .component-item.advanced {
+            background-color: var(--warning-color);
+        }
+        
+        .component-item.advanced:hover {
+            background-color: #e67e22;
         }
         
         .component-item.dragging {
@@ -153,6 +165,7 @@
             justify-content: space-between;
             margin-top: 20px;
             gap: 10px;
+            flex-shrink: 0;
         }
         
         button {
@@ -187,6 +200,11 @@
         
         #wire-mode-btn {
             background-color: var(--primary-color);
+            color: white;
+        }
+        
+        #advanced-mode-btn {
+            background-color: var(--warning-color);
             color: white;
         }
         
@@ -282,20 +300,31 @@
             fill: none;
         }
         
+        .instructions-container {
+            margin-top: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Important for flex child scrolling */
+        }
+        
         .instructions {
             background-color: var(--instructions-bg);
-            padding: 15px;
             border-radius: 5px;
-            margin-top: 15px;
             font-size: 0.9rem;
             transition: background-color 0.3s;
-            overflow: hidden;
-            max-height: 300px;
-            transition: max-height 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
         }
         
         .instructions.collapsed {
-            max-height: 40px;
+            flex: 0 0 auto;
+        }
+        
+        .instructions.expanded {
+            flex: 1;
         }
         
         .instructions-header {
@@ -303,9 +332,9 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            margin-bottom: 10px;
+            padding: 12px 15px;
             position: relative;
-            padding: 0 20px;
+            flex-shrink: 0;
         }
         
         .instructions-header h3 {
@@ -317,9 +346,13 @@
         
         .toggle-icon {
             position: absolute;
-            right: 0;
+            right: 15px;
             font-size: 1.2rem;
             transition: transform 0.3s;
+        }
+        
+        .instructions.expanded .toggle-icon {
+            transform: rotate(0deg);
         }
         
         .instructions.collapsed .toggle-icon {
@@ -327,12 +360,36 @@
         }
         
         .instructions-content {
-            transition: opacity 0.3s;
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px 15px 15px;
+            transition: all 0.3s ease;
+            max-height: 0;
+            opacity: 0;
         }
         
-        .instructions.collapsed .instructions-content {
-            opacity: 0;
-            pointer-events: none;
+        .instructions.expanded .instructions-content {
+            max-height: 400px;
+            opacity: 1;
+        }
+        
+        /* Custom scrollbar for instructions */
+        .instructions-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .instructions-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+        
+        .instructions-content::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+        
+        .instructions-content::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
         }
         
         .theme-toggle-container {
@@ -352,6 +409,7 @@
             font-weight: bold;
             margin-top: 10px;
             text-align: center;
+            flex-shrink: 0;
         }
         
         .mode-wire {
@@ -361,6 +419,11 @@
         
         .mode-select {
             background-color: var(--success-color);
+            color: white;
+        }
+        
+        .mode-advanced {
+            background-color: var(--warning-color);
             color: white;
         }
         
@@ -409,6 +472,44 @@
             font-size: 0.9rem;
             color: var(--text-color);
             opacity: 0.8;
+            flex-shrink: 0;
+        }
+        
+        .advanced-components {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed var(--warning-color);
+            flex-shrink: 0;
+        }
+        
+        .advanced-label {
+            display: block;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--warning-color);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .advanced-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--warning-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .instructions-content p {
+            margin-bottom: 8px;
+        }
+        
+        .instructions-content strong {
+            color: var(--primary-color);
         }
     </style>
 </head>
@@ -420,6 +521,7 @@
                 <p class="subtitle">Build and test electrical circuits - Wires required for connections</p>
             </div>
             <div class="theme-toggle-container">
+                <button id="advanced-mode-btn">Advanced Mode: OFF</button>
                 <span class="theme-icon">🌙</span>
                 <button id="theme-toggle">Light Mode</button>
             </div>
@@ -435,6 +537,35 @@
                     <div class="component-item" data-type="inductor" draggable="true">Inductor</div>
                     <div class="component-item" data-type="led" draggable="true">LED</div>
                     <div class="component-item" data-type="switch" draggable="true">Switch</div>
+                    
+                    <!-- Advanced Components (hidden by default) -->
+                    <div class="advanced-components" style="display: none;">
+                        <span class="advanced-label">Advanced Components</span>
+                        <div class="component-item advanced" data-type="transistor" draggable="true">
+                            Transistor
+                            <div class="advanced-indicator">ADV</div>
+                        </div>
+                        <div class="component-item advanced" data-type="diode" draggable="true">
+                            Diode
+                            <div class="advanced-indicator">ADV</div>
+                        </div>
+                        <div class="component-item advanced" data-type="potentiometer" draggable="true">
+                            Potentiometer
+                            <div class="advanced-indicator">ADV</div>
+                        </div>
+                        <div class="component-item advanced" data-type="voltmeter" draggable="true">
+                            Voltmeter
+                            <div class="advanced-indicator">ADV</div>
+                        </div>
+                        <div class="component-item advanced" data-type="ammeter" draggable="true">
+                            Ammeter
+                            <div class="advanced-indicator">ADV</div>
+                        </div>
+                        <div class="component-item advanced" data-type="logic-gate" draggable="true">
+                            Logic Gate
+                            <div class="advanced-indicator">ADV</div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="component-count">
@@ -447,27 +578,42 @@
                 
                 <div id="mode-indicator" class="mode-indicator mode-select">SELECT MODE</div>
                 
-                <div class="instructions">
-                    <div class="instructions-header">
-                        <h3>Instructions</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="instructions-content">
-                        <p><strong>How to build a circuit:</strong></p>
-                        <p>1. Drag components to the canvas</p>
-                        <p>2. Click "Wire Mode" to connect components</p>
-                        <p>3. Click connection points (orange dots) to create wires</p>
-                        <p>4. Click to select components</p>
-                        <p>5. Drag to move components</p>
-                        <p>6. Use properties panel to edit values</p>
-                        <p>7. Shift+Click to rotate components</p>
-                        <p>8. Press Delete to remove selected component</p>
-                        <p><strong>How to power the switch:</strong></p>
-                        <p>- Select a switch component</p>
-                        <p>- Use the "Open/Close" buttons in properties panel</p>
-                        <p>- Or double-click the switch to toggle it</p>
-                        <p>- Closed switches allow current to flow</p>
-                        <p>- Open switches block current flow</p>
+                <div class="instructions-container">
+                    <div class="instructions collapsed">
+                        <div class="instructions-header">
+                            <h3>Instructions</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="instructions-content">
+                            <p><strong>How to build a circuit:</strong></p>
+                            <p>1. Drag components to the canvas</p>
+                            <p>2. Click "Wire Mode" to connect components</p>
+                            <p>3. Click connection points (orange dots) to create wires</p>
+                            <p>4. Click to select components</p>
+                            <p>5. Drag to move components</p>
+                            <p>6. Use properties panel to edit values</p>
+                            <p>7. Shift+Click to rotate components</p>
+                            <p>8. Press Delete to remove selected component</p>
+                            <p><strong>Advanced Mode Features:</strong></p>
+                            <p>• Transistors for amplification and switching</p>
+                            <p>• Diodes for one-way current flow</p>
+                            <p>• Potentiometers for variable resistance</p>
+                            <p>• Voltmeters and Ammeters for measurements</p>
+                            <p>• Logic gates for digital circuits</p>
+                            <p>• Complex circuit analysis with voltage/current calculations</p>
+                            <p><strong>Tips for better circuits:</strong></p>
+                            <p>• Always connect components with wires</p>
+                            <p>• Start with a battery as power source</p>
+                            <p>• Use resistors to limit current for LEDs</p>
+                            <p>• Close switches to complete circuits</p>
+                            <p>• Rotate components for better wiring</p>
+                            <p>• Test frequently with the Simulate button</p>
+                            <p><strong>Troubleshooting:</strong></p>
+                            <p>• No power? Check battery connections</p>
+                            <p>• LED not lighting? Add a resistor</p>
+                            <p>• Circuit not working? Verify all wires are connected</p>
+                            <p>• Components not moving? Make sure they're selected</p>
+                        </div>
                     </div>
                 </div>
                 
@@ -496,6 +642,27 @@
                     <label>Switch State:</label>
                     <button id="open-switch" class="switch-btn">Open</button>
                     <button id="close-switch" class="switch-btn">Close</button>
+                </div>
+                
+                <div id="advanced-properties" style="display: none;">
+                    <div class="property-item">
+                        <label for="gate-type">Logic Gate Type:</label>
+                        <select id="gate-type">
+                            <option value="AND">AND Gate</option>
+                            <option value="OR">OR Gate</option>
+                            <option value="NOT">NOT Gate</option>
+                            <option value="XOR">XOR Gate</option>
+                            <option value="NAND">NAND Gate</option>
+                            <option value="NOR">NOR Gate</option>
+                        </select>
+                    </div>
+                    <div class="property-item">
+                        <label for="transistor-type">Transistor Type:</label>
+                        <select id="transistor-type">
+                            <option value="NPN">NPN Transistor</option>
+                            <option value="PNP">PNP Transistor</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="simulation-results">
@@ -548,19 +715,60 @@
                 this.id = Math.random().toString(36).substr(2, 9);
                 this.connectionPoints = this.calculateConnectionPoints();
                 this.powered = false;
+                this.advanced = this.isAdvancedComponent(type);
                 
-                // Initialize switch state
+                // Initialize component-specific properties
                 if (this.type === 'switch') {
                     this.isClosed = this.value.toLowerCase() === 'closed';
                 }
+                if (this.type === 'logic-gate') {
+                    this.gateType = 'AND';
+                    this.inputs = [false, false];
+                    this.output = false;
+                }
+                if (this.type === 'transistor') {
+                    this.transistorType = 'NPN';
+                    this.baseCurrent = 0;
+                }
+                if (this.type === 'potentiometer') {
+                    this.resistance = 1000; // ohms
+                    this.position = 0.5; // 0-1 range
+                }
+                if (this.type === 'voltmeter' || this.type === 'ammeter') {
+                    this.measurement = 0;
+                }
+            }
+            
+            isAdvancedComponent(type) {
+                const advancedTypes = ['transistor', 'diode', 'potentiometer', 'voltmeter', 'ammeter', 'logic-gate'];
+                return advancedTypes.includes(type);
             }
             
             calculateConnectionPoints() {
-                // Calculate connection points based on rotation
+                // Calculate connection points based on rotation and component type
                 const points = [];
                 
-                if (this.rotation === 0 || this.rotation === 180) {
-                    // Horizontal orientation
+                if (this.type === 'transistor') {
+                    // Transistor has 3 connection points
+                    points.push({ x: this.x - 30, y: this.y - 15, type: 'collector' });
+                    points.push({ x: this.x, y: this.y + 20, type: 'base' });
+                    points.push({ x: this.x + 30, y: this.y - 15, type: 'emitter' });
+                } else if (this.type === 'diode') {
+                    // Diode has 2 connection points
+                    points.push({ x: this.x - 25, y: this.y, type: 'anode' });
+                    points.push({ x: this.x + 25, y: this.y, type: 'cathode' });
+                } else if (this.type === 'logic-gate') {
+                    // Logic gate has multiple inputs and one output
+                    points.push({ x: this.x - 30, y: this.y - 10, type: 'input1' });
+                    points.push({ x: this.x - 30, y: this.y + 10, type: 'input2' });
+                    points.push({ x: this.x + 30, y: this.y, type: 'output' });
+                } else if (this.type === 'potentiometer') {
+                    // Potentiometer has 3 connection points
+                    points.push({ x: this.x - 25, y: this.y, type: 'end1' });
+                    points.push({ x: this.x, y: this.y + 20, type: 'wiper' });
+                    points.push({ x: this.x + 25, y: this.y, type: 'end2' });
+                } else if (this.rotation === 0 || this.rotation === 180) {
+                    // Horizontal orientation for standard components
                     points.push({ x: this.x - this.width/2, y: this.y, type: 'left' });
                     points.push({ x: this.x + this.width/2, y: this.y, type: 'right' });
                 } else {
@@ -615,6 +823,24 @@
                         break;
                     case 'switch':
                         this.drawSwitch();
+                        break;
+                    case 'transistor':
+                        this.drawTransistor();
+                        break;
+                    case 'diode':
+                        this.drawDiode();
+                        break;
+                    case 'potentiometer':
+                        this.drawPotentiometer();
+                        break;
+                    case 'voltmeter':
+                        this.drawVoltmeter();
+                        break;
+                    case 'ammeter':
+                        this.drawAmmeter();
+                        break;
+                    case 'logic-gate':
+                        this.drawLogicGate();
                         break;
                 }
                 
@@ -753,6 +979,111 @@
                 this.value = this.isClosed ? 'Closed' : 'Open';
             }
             
+            drawTransistor() {
+                // Draw transistor symbol
+                ctx.beginPath();
+                ctx.moveTo(-20, -15);
+                ctx.lineTo(0, 15);
+                ctx.lineTo(20, -15);
+                ctx.closePath();
+                ctx.stroke();
+                
+                // Draw base line
+                ctx.beginPath();
+                ctx.moveTo(0, 15);
+                ctx.lineTo(0, 25);
+                ctx.stroke();
+                
+                // Draw arrow for NPN/PNP
+                if (this.transistorType === 'NPN') {
+                    ctx.beginPath();
+                    ctx.moveTo(5, -5);
+                    ctx.lineTo(0, 0);
+                    ctx.lineTo(5, 5);
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(-5, -5);
+                    ctx.lineTo(0, 0);
+                    ctx.lineTo(-5, 5);
+                    ctx.stroke();
+                }
+            }
+            
+            drawDiode() {
+                // Draw diode symbol
+                ctx.beginPath();
+                ctx.moveTo(-25, 0);
+                ctx.lineTo(-5, 0);
+                ctx.lineTo(-5, -15);
+                ctx.lineTo(5, 0);
+                ctx.lineTo(-5, 15);
+                ctx.lineTo(-5, 0);
+                ctx.lineTo(25, 0);
+                ctx.stroke();
+                
+                // Draw cathode line
+                ctx.beginPath();
+                ctx.moveTo(15, -10);
+                ctx.lineTo(15, 10);
+                ctx.stroke();
+            }
+            
+            drawPotentiometer() {
+                // Draw potentiometer symbol
+                ctx.beginPath();
+                ctx.moveTo(-25, 0);
+                ctx.lineTo(25, 0);
+                ctx.stroke();
+                
+                // Draw wiper
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, 15);
+                ctx.stroke();
+                
+                // Draw arrow on wiper
+                ctx.beginPath();
+                ctx.moveTo(-5, 10);
+                ctx.lineTo(0, 15);
+                ctx.lineTo(5, 10);
+                ctx.stroke();
+            }
+            
+            drawVoltmeter() {
+                // Draw voltmeter symbol (V in circle)
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('V', 0, 5);
+            }
+            
+            drawAmmeter() {
+                // Draw ammeter symbol (A in circle)
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('A', 0, 5);
+            }
+            
+            drawLogicGate() {
+                // Draw logic gate shape
+                ctx.beginPath();
+                ctx.moveTo(-25, -15);
+                ctx.lineTo(0, -15);
+                ctx.lineTo(25, 0);
+                ctx.lineTo(0, 15);
+                ctx.lineTo(-25, 15);
+                ctx.closePath();
+                ctx.stroke();
+                
+                // Draw gate type text
+                ctx.font = '10px Arial';
+                ctx.fillText(this.gateType, 0, 3);
+            }
+            
             drawConnectionPoints() {
                 this.connectionPoints = this.calculateConnectionPoints();
                 
@@ -801,6 +1132,13 @@
             
             resetPower() {
                 this.powered = false;
+                if (this.type === 'voltmeter' || this.type === 'ammeter') {
+                    this.measurement = 0;
+                }
+                if (this.type === 'logic-gate') {
+                    this.output = false;
+                    this.inputs = [false, false];
+                }
             }
             
             toggleSwitch() {
@@ -839,6 +1177,8 @@
                 this.powered = false;
                 this.fromIndex = fromPoint.index;
                 this.toIndex = toPoint.index;
+                this.current = 0;
+                this.voltage = 0;
             }
             
             draw() {
@@ -848,6 +1188,18 @@
                 ctx.strokeStyle = this.powered ? '#f1c40f' : '#7f8c8d';
                 ctx.lineWidth = this.powered ? 3 : 2;
                 ctx.stroke();
+                
+                // Show current/voltage in advanced mode
+                if (window.advancedMode && (this.current > 0 || this.voltage > 0)) {
+                    const midX = (this.fromPoint.x + this.toPoint.x) / 2;
+                    const midY = (this.fromPoint.y + this.toPoint.y) / 2;
+                    
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${this.voltage.toFixed(1)}V`, midX, midY - 5);
+                    ctx.fillText(`${this.current.toFixed(1)}A`, midX, midY + 10);
+                }
             }
         }
         
@@ -887,6 +1239,24 @@
                         break;
                     case 'switch':
                         defaultValue = 'Open';
+                        break;
+                    case 'transistor':
+                        defaultValue = 'NPN';
+                        break;
+                    case 'diode':
+                        defaultValue = 'Si';
+                        break;
+                    case 'potentiometer':
+                        defaultValue = '1kΩ';
+                        break;
+                    case 'voltmeter':
+                        defaultValue = 'V';
+                        break;
+                    case 'ammeter':
+                        defaultValue = 'A';
+                        break;
+                    case 'logic-gate':
+                        defaultValue = 'AND';
                         break;
                 }
                 
@@ -982,6 +1352,9 @@
                 const valueInput = document.getElementById('component-value');
                 const nameInput = document.getElementById('component-name');
                 const switchControls = document.getElementById('switch-controls');
+                const advancedProps = document.getElementById('advanced-properties');
+                const gateTypeSelect = document.getElementById('gate-type');
+                const transistorTypeSelect = document.getElementById('transistor-type');
                 
                 if (this.selectedComponent) {
                     valueInput.value = this.selectedComponent.value;
@@ -995,12 +1368,27 @@
                     } else {
                         switchControls.style.display = 'none';
                     }
+                    
+                    // Show advanced properties for advanced components
+                    if (this.selectedComponent.advanced && window.advancedMode) {
+                        advancedProps.style.display = 'block';
+                        
+                        if (this.selectedComponent.type === 'logic-gate') {
+                            gateTypeSelect.value = this.selectedComponent.gateType;
+                        }
+                        if (this.selectedComponent.type === 'transistor') {
+                            transistorTypeSelect.value = this.selectedComponent.transistorType;
+                        }
+                    } else {
+                        advancedProps.style.display = 'none';
+                    }
                 } else {
                     valueInput.value = '';
                     nameInput.value = '';
                     valueInput.disabled = true;
                     nameInput.disabled = true;
                     switchControls.style.display = 'none';
+                    advancedProps.style.display = 'none';
                 }
             }
             
@@ -1008,6 +1396,17 @@
                 if (this.selectedComponent) {
                     this.selectedComponent.value = value;
                     this.selectedComponent.name = name;
+                }
+            }
+            
+            updateAdvancedProperties(gateType, transistorType) {
+                if (this.selectedComponent) {
+                    if (this.selectedComponent.type === 'logic-gate') {
+                        this.selectedComponent.gateType = gateType;
+                    }
+                    if (this.selectedComponent.type === 'transistor') {
+                        this.selectedComponent.transistorType = transistorType;
+                    }
                 }
             }
             
@@ -1071,7 +1470,11 @@
                 
                 // Reset all power states
                 this.components.forEach(component => component.resetPower());
-                this.wires.forEach(wire => wire.powered = false);
+                this.wires.forEach(wire => {
+                    wire.powered = false;
+                    wire.current = 0;
+                    wire.voltage = 0;
+                });
                 
                 if (this.components.length === 0) {
                     resultsContainer.innerHTML = '<p>No components in the circuit.</p>';
@@ -1090,6 +1493,17 @@
                     resultsContainer.innerHTML = '<p>No wires connecting components. Use Wire Mode to connect components.</p>';
                     return;
                 }
+                
+                // Enhanced circuit analysis for advanced mode
+                if (window.advancedMode) {
+                    this.simulateAdvanced();
+                } else {
+                    this.simulateBasic();
+                }
+            }
+            
+            simulateBasic() {
+                const resultsContainer = document.getElementById('results-container');
                 
                 // Simple circuit analysis - propagate power from batteries through wires
                 let changed = true;
@@ -1171,6 +1585,112 @@
                 });
                 
                 resultsContainer.innerHTML = resultsHTML;
+            }
+            
+            simulateAdvanced() {
+                const resultsContainer = document.getElementById('results-container');
+                
+                // Advanced simulation with voltage and current calculations
+                let resultsHTML = `
+                    <p><strong>Advanced Circuit Analysis:</strong></p>
+                    <div class="result-item">Components: ${this.components.length}</div>
+                    <div class="result-item">Wires: ${this.wires.length}</div>
+                    <div class="result-item">Advanced Components: ${this.components.filter(c => c.advanced).length}</div>
+                `;
+                
+                // Calculate basic circuit metrics
+                const totalResistance = this.calculateTotalResistance();
+                const totalVoltage = 9; // Assuming 9V battery
+                const totalCurrent = totalVoltage / totalResistance;
+                
+                resultsHTML += `
+                    <div class="result-item">Total Voltage: ${totalVoltage}V</div>
+                    <div class="result-item">Total Resistance: ${totalResistance.toFixed(2)}Ω</div>
+                    <div class="result-item">Total Current: ${totalCurrent.toFixed(3)}A</div>
+                `;
+                
+                // Advanced component analysis
+                this.components.forEach(component => {
+                    if (component.type === 'voltmeter') {
+                        component.measurement = this.calculateVoltage(component);
+                        resultsHTML += `<div class="result-item">Voltmeter: ${component.measurement.toFixed(2)}V</div>`;
+                    }
+                    if (component.type === 'ammeter') {
+                        component.measurement = totalCurrent;
+                        resultsHTML += `<div class="result-item">Ammeter: ${component.measurement.toFixed(3)}A</div>`;
+                    }
+                    if (component.type === 'logic-gate') {
+                        this.simulateLogicGate(component);
+                        resultsHTML += `<div class="result-item">Logic Gate (${component.gateType}): Output = ${component.output ? 'HIGH' : 'LOW'}</div>`;
+                    }
+                    if (component.type === 'transistor') {
+                        resultsHTML += `<div class="result-item">Transistor (${component.transistorType}): ${component.powered ? 'ACTIVE' : 'INACTIVE'}</div>`;
+                    }
+                });
+                
+                // Update wire measurements
+                this.wires.forEach(wire => {
+                    wire.current = totalCurrent;
+                    wire.voltage = this.calculateWireVoltage(wire);
+                });
+                
+                resultsContainer.innerHTML = resultsHTML;
+            }
+            
+            calculateTotalResistance() {
+                // Simplified resistance calculation
+                let totalR = 0;
+                this.components.forEach(component => {
+                    if (component.type === 'resistor') {
+                        const value = component.value;
+                        if (value.includes('k')) {
+                            totalR += parseFloat(value) * 1000;
+                        } else if (value.includes('M')) {
+                            totalR += parseFloat(value) * 1000000;
+                        } else {
+                            totalR += parseFloat(value) || 100;
+                        }
+                    }
+                });
+                return totalR > 0 ? totalR : 100; // Default resistance
+            }
+            
+            calculateVoltage(component) {
+                // Simplified voltage calculation at component
+                return Math.random() * 9; // Random voltage for demonstration
+            }
+            
+            calculateWireVoltage(wire) {
+                // Simplified voltage calculation for wire
+                return Math.random() * 9; // Random voltage for demonstration
+            }
+            
+            simulateLogicGate(gate) {
+                // Simulate logic gate operation
+                const [input1, input2] = gate.inputs;
+                
+                switch(gate.gateType) {
+                    case 'AND':
+                        gate.output = input1 && input2;
+                        break;
+                    case 'OR':
+                        gate.output = input1 || input2;
+                        break;
+                    case 'NOT':
+                        gate.output = !input1;
+                        break;
+                    case 'XOR':
+                        gate.output = (input1 && !input2) || (!input1 && input2);
+                        break;
+                    case 'NAND':
+                        gate.output = !(input1 && input2);
+                        break;
+                    case 'NOR':
+                        gate.output = !(input1 || input2);
+                        break;
+                }
+                
+                gate.powered = gate.output;
             }
             
             isPathBlocked(fromComponent, toComponent) {
@@ -1259,6 +1779,7 @@
         
         // Initialize circuit
         const circuit = new Circuit();
+        window.advancedMode = false;
         
         // Theme toggle functionality
         const themeToggle = document.getElementById('theme-toggle');
@@ -1274,6 +1795,30 @@
                 body.classList.add('dark-mode');
                 themeToggle.textContent = 'Light Mode';
                 themeIcon.textContent = '🌙';
+            }
+        });
+        
+        // Advanced mode toggle
+        const advancedModeBtn = document.getElementById('advanced-mode-btn');
+        const advancedComponents = document.querySelector('.advanced-components');
+        
+        advancedModeBtn.addEventListener('click', () => {
+            window.advancedMode = !window.advancedMode;
+            
+            if (window.advancedMode) {
+                advancedModeBtn.textContent = 'Advanced Mode: ON';
+                advancedModeBtn.style.backgroundColor = '#27ae60';
+                advancedComponents.style.display = 'block';
+            } else {
+                advancedModeBtn.textContent = 'Advanced Mode: OFF';
+                advancedModeBtn.style.backgroundColor = '';
+                advancedComponents.style.display = 'none';
+                
+                // Remove advanced components when turning off advanced mode
+                circuit.components = circuit.components.filter(component => !component.advanced);
+                circuit.updatePropertiesPanel();
+                circuit.updateCounts();
+                circuit.draw();
             }
         });
         
@@ -1293,12 +1838,26 @@
             circuit.draw();
         });
         
-        // Collapsible instructions
+        // Advanced property controls
+        document.getElementById('gate-type').addEventListener('change', (e) => {
+            const transistorType = document.getElementById('transistor-type').value;
+            circuit.updateAdvancedProperties(e.target.value, transistorType);
+            circuit.draw();
+        });
+        
+        document.getElementById('transistor-type').addEventListener('change', (e) => {
+            const gateType = document.getElementById('gate-type').value;
+            circuit.updateAdvancedProperties(gateType, e.target.value);
+            circuit.draw();
+        });
+        
+        // Collapsible instructions with proper layout
         const instructions = document.querySelector('.instructions');
         const instructionsHeader = document.querySelector('.instructions-header');
         
         instructionsHeader.addEventListener('click', () => {
             instructions.classList.toggle('collapsed');
+            instructions.classList.toggle('expanded');
         });
         
         // Event listeners for component dragging from panel
@@ -1328,6 +1887,13 @@
             
             const x = (e.clientX - rect.left) * scaleX;
             const y = (e.clientY - rect.top) * scaleY;
+            
+            // Check if component is advanced and advanced mode is off
+            const advancedTypes = ['transistor', 'diode', 'potentiometer', 'voltmeter', 'ammeter', 'logic-gate'];
+            if (advancedTypes.includes(type) && !window.advancedMode) {
+                alert('Advanced components require Advanced Mode to be enabled!');
+                return;
+            }
             
             circuit.addComponent(type, x, y);
             circuit.draw();
