@@ -1,6 +1,6 @@
 Electrical Circuit Simulator
 An interactive web-based electrical circuit simulator that allows you to build and test circuits with common electronic components. Perfect for learning electronics concepts or prototyping simple circuits.
-![https---img shields](https://github.com/user-attachments/assets/ca18dd10-aa3f-43f6-9081-e40de23f6435)
+
 Features
 🧩 Drag & Drop Components - Easily place components on the canvas
 
